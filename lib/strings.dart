@@ -1,4 +1,4 @@
-const APP_NAME = "Default App Flutter";
+const APP_NAME = "Moto App";
 
 const HOME = "Mapa";
 const NOTIFICATIONS = "Promoções";
