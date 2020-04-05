@@ -1,7 +1,7 @@
 const APP_NAME = "Moto App";
 
-const HOME = "Mapa";
-const NOTIFICATIONS = "Promoções";
+const HOME = "Dashboard";
+const NOTIFICATIONS = "Notificações";
 const HISTORICO = "Histórico";
 const SETTINGS = "Ajustes";
 

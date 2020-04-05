@@ -115,7 +115,7 @@ class _UserState extends State<UserPage> implements UserContractView {
               child: Icon(Icons.camera_alt, color: Colors.white,),
               shape: CircleBorder(),
               elevation: 2.0,
-              fillColor: Theme.of(context).primaryColorDark,
+              fillColor: Theme.of(context).accentColor,
               padding: const EdgeInsets.all(10),
               onPressed: () {
                 changeImgUser();

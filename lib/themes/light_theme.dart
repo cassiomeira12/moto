@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 
 const brightness = Brightness.light;
-const primaryColor = const Color(0xFF84E8B2);
-const primaryColorDark = const Color(0xFF66B489);
-const accentColor = const Color(0xFF808080);
-const backgroundColor = const Color(0xFFF5F5F5);
+
+const primaryColor = const Color(0xFF4FAA84);
+const primaryColorDark = const Color(0xFF3C7168);
+const accentColor = const Color(0xFFFCA639);
+
+const backgroundColor = const Color(0xFFF9F9FA);
+const errorColor = const Color(0xFFB00020);
 
 ThemeData lightTheme() {
   return ThemeData(
-    scaffoldBackgroundColor: Colors.grey[100],
+    scaffoldBackgroundColor: backgroundColor,
     backgroundColor: Colors.white,
     brightness: brightness,
     textTheme: TextTheme(
@@ -27,6 +30,15 @@ ThemeData lightTheme() {
       button: TextStyle(
         fontSize: 14,
         color: Colors.blue,
+      ),
+      display1: TextStyle(
+        fontSize: 18,
+        color: Colors.black45,
+        fontWeight: FontWeight.bold,
+      ),
+      display2: TextStyle(
+        fontSize: 12,
+        color: Colors.black45,
       ),
     ),
     // tabBarTheme:
@@ -57,7 +69,7 @@ ThemeData lightTheme() {
     // primaryTextTheme:
     // sliderTheme:
     hintColor: Colors.grey[350],
-    errorColor: Colors.red,
+    errorColor: errorColor,
     primaryColor: primaryColor,
     primaryColorDark: primaryColorDark,
     accentColor: accentColor,

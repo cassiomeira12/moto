@@ -68,7 +68,7 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
 
   Widget _showForm() {
     return Container(
-      padding: EdgeInsets.all(12.0),
+      padding: EdgeInsets.all(12),
       child: Form(
         key: _formKey,
         child: Column(
@@ -83,7 +83,7 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
   Widget user() {
     return Container(
       child: Stack(
-        alignment: Alignment.bottomRight,
+        alignment: Alignment.center,
         children: <Widget>[
           imgUser(),
         ],
@@ -92,14 +92,15 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
   }
 
   Widget imgUser() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-      child: Center(
-        child: Hero(
-          tag: 'imgUser',
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-            child: ClipOval(
+    return Container(
+      child: Stack(
+        alignment: Alignment.center,
+        children: <Widget>[
+          Container(
+            alignment: Alignment.bottomRight,
+            width: 120,
+            child: Hero(
+              tag: 'imgUser',
               child: GestureDetector(
                 child: Stack(
                   children: <Widget>[
@@ -113,7 +114,7 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

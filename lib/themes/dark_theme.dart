@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
 const brightness = Brightness.dark;
-const primaryColor = const Color(0xFF00C569);
-const primaryColorDark = const Color(0xFF66B489);
-const accentColor = const Color(0xFF808080);
+
+const primaryColor = const Color(0xFF00796B);
+const primaryColorDark = const Color(0xFF004D40);
+const accentColor = const Color(0xFFFCA639);
+
 const backgroundColor = const Color(0xFFF5F5F5);
+const errorColor = Colors.redAccent;
 
 ThemeData darkTheme() {
   return ThemeData(
@@ -26,6 +29,15 @@ ThemeData darkTheme() {
       ),
       button: TextStyle(
         fontSize: 14,
+        color: Colors.white,
+      ),
+      display1: TextStyle(
+        fontSize: 18,
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
+      ),
+      display2: TextStyle(
+        fontSize: 12,
         color: Colors.white,
       ),
     ),
@@ -57,11 +69,11 @@ ThemeData darkTheme() {
     // primaryTextTheme:
     // sliderTheme:
     hintColor: Colors.white30,
-    errorColor: Colors.red,
+    errorColor: errorColor,
     primaryColor: primaryColor,
     primaryColorDark: primaryColorDark,
-    accentColor: primaryColor,
+    accentColor: accentColor,
     // fontFamily: 'Montserrat',
-    buttonColor: Colors.blue[400],
+    buttonColor: Colors.blue[500],
   );
 }
