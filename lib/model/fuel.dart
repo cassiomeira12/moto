@@ -1,27 +1,48 @@
 import 'package:moto/model/base_model.dart';
 
-class Fuel implements BaseModel<Fuel> {
+import 'gasto.dart';
 
+class Fuel extends Gasto implements BaseModel<Fuel> {
+
+  String _uId;
+  String combustivel;
   DateTime data;
-  String total;
   double litros;
+  double total;
+
+  Fuel() {
+    type = GastoType.COMBUSTIVEL;
+  }
 
   @override
   String getUid() {
-    // TODO: implement getUid
-    throw UnimplementedError();
+    return _uId;
   }
 
   @override
   setUid(String uId) {
-    // TODO: implement setUid
-    throw UnimplementedError();
+    this._uId = uId;
+  }
+
+  Fuel.fromMap(Map<dynamic, dynamic>  map) {
+    type = GastoType.COMBUSTIVEL;
+    _uId = map["uId"];
+    combustivel = map["combustivel"];
+    //data = map["data"] as DateTime;
+    litros = map["litros"] as double;
+    total = map["total"] as double;
   }
 
   @override
   toMap() {
-    // TODO: implement toMap
-    throw UnimplementedError();
+    var map = new Map<String, dynamic>();
+    map["uId"] = _uId;
+    map["type"] = type.toString();
+    map["combustivel"] = combustivel;
+    //map["data"] = data;
+    map["litros"] = litros;
+    map["total"] = total;
+    return map;
   }
 
   @override

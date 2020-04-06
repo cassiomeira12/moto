@@ -1,28 +1,44 @@
 import 'package:moto/model/base_model.dart';
 
-class Maintenance implements BaseModel<Maintenance> {
+import 'gasto.dart';
 
-  String tipo;
+class Maintenance extends Gasto implements BaseModel<Maintenance> {
+
+  String _uId;
   double total;
+  DateTime data;
   String notaURL;
   String itens;
 
+  Maintenance() {
+    type = GastoType.MANUTENCAO;
+  }
+
   @override
   String getUid() {
-    // TODO: implement getUid
-    throw UnimplementedError();
+    return _uId;
   }
 
   @override
   setUid(String uId) {
-    // TODO: implement setUid
-    throw UnimplementedError();
+    this._uId = uId;
+  }
+
+  Maintenance.fromMap(Map<dynamic, dynamic>  map) {
+    type = GastoType.MANUTENCAO;
+    _uId = map["uId"];
+    //data = map["data"] as DateTime;
+    total = map["total"] as double;
   }
 
   @override
   toMap() {
-    // TODO: implement toMap
-    throw UnimplementedError();
+    var map = new Map<String, dynamic>();
+    map["uId"] = _uId;
+    map["type"] = type.toString();
+    //map["data"] = data;
+    map["total"] = total;
+    return map;
   }
 
   @override

@@ -1,28 +1,45 @@
 import 'package:moto/model/base_model.dart';
 
-class Item implements BaseModel<Item> {
+import 'gasto.dart';
 
-  String tipo;
+class Item extends Gasto implements BaseModel<Item> {
+
+  String _uId;
   String produto;
   double quantidade;
   double total;
 
+  Item() {
+    type = GastoType.PRODUTO;
+  }
+
   @override
   String getUid() {
-    // TODO: implement getUid
-    throw UnimplementedError();
+    return _uId;
   }
 
   @override
   setUid(String uId) {
-    // TODO: implement setUid
-    throw UnimplementedError();
+    this._uId = uId;
+  }
+
+  Item.fromMap(Map<dynamic, dynamic>  map) {
+    type = GastoType.PRODUTO;
+    _uId = map["uId"];
+    produto = map["produto"];
+    quantidade = map["quantidade"] as double;
+    total = map["total"] as double;
   }
 
   @override
   toMap() {
-    // TODO: implement toMap
-    throw UnimplementedError();
+    var map = new Map<String, dynamic>();
+    map["uId"] = _uId;
+    map["type"] = type.toString();
+    map["produto"] = produto;
+    map["quantidade"] = quantidade;
+    map["total"] = total;
+    return map;
   }
 
   @override
