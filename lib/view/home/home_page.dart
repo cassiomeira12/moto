@@ -1,4 +1,7 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:moto/contract/month/month_contract.dart';
+import 'package:moto/main.dart';
 import 'package:moto/model/fuel.dart';
 import 'package:moto/model/gasto.dart';
 import 'package:moto/model/item.dart';
@@ -8,7 +11,7 @@ import 'package:moto/model/review.dart';
 import 'package:moto/presenter/month/month_presenter.dart';
 import 'package:moto/strings.dart';
 import 'package:moto/view/home/gasto_page.dart';
-import 'package:moto/view/widgets/background_card.dart';
+import 'package:moto/view/widgets/scaffold_snackbar.dart';
 import 'package:moto/view/widgets/secondary_button.dart';
 import 'package:flutter/material.dart';
 
@@ -22,12 +25,15 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> implements MonthContractView {
   final _formKey = new GlobalKey<FormState>();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  var _controllerKilometragem = TextEditingController();
 
   MonthContractPresenter presenter;
 
   Month currentMonth;
-  String totalMes = "0.00";
-  int kmRodados;
+  double totalMes = 0.0;
+  int kmInicio, kmAtualTemp = 0, kmRodados;
 
   List<dynamic> listDespesas;
 
@@ -37,18 +43,24 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
     presenter = MouthPresenter(this);
     currentMonth = Month();
     currentMonth.setUid("0${DateTime.now().month}${DateTime.now().year}");
+    //currentMonth.setUid("03${DateTime.now().year}");
     presenter.read(currentMonth);
     list();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   Future list() async {
     List list = await presenter.listDespesas(currentMonth);
     double total = 0;
-//    list.forEach((element) {
-//      total += (element as Fuel).total;
-//    });
+    list.forEach((element) {
+      total += (element as Gasto).total;
+    });
     setState(() {
-      totalMes = total.toString();
+      totalMes = total;
       listDespesas = list;
     });
   }
@@ -56,34 +68,32 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //key: _scaffoldKey,
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text(HOME, style: TextStyle(color: Colors.white),),
         iconTheme: IconThemeData(color: Colors.white),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            Stack(
-              children: <Widget>[
-                BackgroundCard(height: 300,),
-                SingleChildScrollView(
-                  child: Column(
-                    children: <Widget>[
-                      _showForm(),
-                    ],
-                  ),
-                ),
-              ],
+      body: NestedScrollView(
+        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+          return <Widget>[
+            SliverAppBar(
+              expandedHeight: 300,
+              floating: false,
+              pinned: false, //barra
+              flexibleSpace: FlexibleSpaceBar(
+                title: Text("Mês de Abril"),
+                centerTitle: true,
+                collapseMode: CollapseMode.pin,
+                background: _showForm(),
+              ),
             ),
-            novoGastoButton(),
-            Container(
-              width: double.infinity,
-              height: 300,
-              child: listDespesas == null ? showCircularProgress() : listView2(),
-            ),
-            //formOpcoes(),
-          ],
+          ];
+        },
+        body: ListView.builder(
+          itemCount: listDespesas == null ? 0 : listDespesas.length,
+          itemBuilder: (context, index) {
+            return gastoWidget(index);
+          },
         ),
       ),
     );
@@ -96,6 +106,7 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
 
   @override
   onSuccess(Month result) {
+    kmInicio = result.kmInicio;
     kmRodados = result.kmRodados();
     setState(() {
       currentMonth = result;
@@ -116,35 +127,21 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
         key: _formKey,
         child: Center(
           child: Padding(
-            padding: EdgeInsets.all(10),
+            padding: EdgeInsets.fromLTRB(0, 12, 0, 0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              //mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
 
-                Padding(
-                  padding: EdgeInsets.fromLTRB(0, 8, 0, 12),
-                  child: Text(
-                    "Abril",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 30,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: <Widget>[
-
                     Flexible(
                       flex: 1,
                       child: SizedBox(
                         height: 100,
                         child: RaisedButton(
                           elevation: 5,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20),),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10),),
                           color: Theme.of(context).backgroundColor,
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -156,7 +153,7 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
                                 children: <Widget>[
                                   Text(
                                     "Atual: ${currentMonth.kmFim} km",
-                                    style: Theme.of(context).textTheme.body1,
+                                    style: Theme.of(context).textTheme.display1,
                                     textAlign: TextAlign.center,
                                   ),
                                   Text(
@@ -169,7 +166,7 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
                             ],
                           ),
                           onPressed: () {
-                            //print(currentMonth.combustivel.toString());
+                            showDialogLogOut();
                           },
                         ),
                       ),
@@ -181,14 +178,14 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
                         height: 100,
                         child: RaisedButton(
                           elevation: 5,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20),),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10),),
                           color: Theme.of(context).backgroundColor,
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
                               Text(
                                 "Moto Honda Fan 150",
-                                style: Theme.of(context).textTheme.body1,
+                                style: Theme.of(context).textTheme.display1,
                                 textAlign: TextAlign.center,
                               ),
                               RaisedButton(
@@ -198,6 +195,7 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
                                   style: Theme.of(context).textTheme.body1,
                                   textAlign: TextAlign.center,
                                 ),
+                                disabledColor: Colors.black12,
                               ),
                             ],
                           ),
@@ -205,21 +203,16 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
                         ),
                       ),
                     ),
-
-
                   ],
                 ),
 
-
-
-
                 Padding(
-                  padding: EdgeInsets.fromLTRB(0, 8, 0, 8),
+                  padding: EdgeInsets.fromLTRB(8, 24, 8, 0),
                   child: SizedBox(
-                    height: 100,
+                    height: 50,
                     child: RaisedButton(
                       elevation: 5,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20),),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10),),
                       color: Theme.of(context).backgroundColor,
                       child: Center(
                         child: Text(
@@ -227,13 +220,12 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
                           style: Theme.of(context).textTheme.subtitle,
                         ),
                       ),
-                      onPressed: () { },
+                      disabledColor: Theme.of(context).backgroundColor,
                     ),
                   ),
                 ),
 
-
-
+                novoGastoButton(),
 
               ],
             ),
@@ -271,104 +263,47 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
             ],
           ),
         ),
-        onPressed: () {
-          PageRouter.push(context, GastoPage(month: currentMonth,));
+        onPressed: () async {
+          final result = await Navigator.of(context).push(
+            CupertinoPageRoute(
+              builder: (context) {
+                return GastoPage(month: currentMonth);
+              }
+            ),
+          );
+          setState(() {
+            totalMes += (result as Gasto).total;
+            listDespesas.add(result);
+          });
         },
       ),
     );
   }
 
-  Widget item() {
-    return SecondaryButton(
-      child: Container(
-        child: Row(
-          children: <Widget>[
-            Flexible(
-              flex: 1,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Image.asset(
-                  "assets/manutencao.png",
-                  width: 40,
-                ),
-              ),
-            ),
-            Flexible(
-              flex: 4,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      "Revisão completa",
-                      maxLines: 1,
-                      style: Theme.of(context).textTheme.display1,
-                      textAlign: TextAlign.left,
-                    ),
-                    Text(
-                      "4 de abril",
-                      maxLines: 1,
-                      style: Theme.of(context).textTheme.display2,
-                      textAlign: TextAlign.left,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Flexible(
-              flex: 2,
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  "R\$: 700,00",
-                  maxLines: 1,
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Theme.of(context).errorColor,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      onPressed: () {
-
-      },
-    );
-  }
-
-  Widget item2(int index) {
-
-    String tipo, imagem, preco, data;
+  Widget gastoWidget(int index) {
+    String tipo, preco, data;
+    preco = (listDespesas[index] as Gasto).total.toString();
 
     switch((listDespesas[index] as Gasto).type) {
       case GastoType.COMBUSTIVEL:
         Fuel fuel = listDespesas[index] as Fuel;
+        data = "Dia ${fuel.data.day} às ${fuel.data.hour}:${fuel.data.minute}";
         tipo = "Combustível";
-        imagem = "assets/combustivel.png";
-        preco = fuel.total.toString();
         break;
       case GastoType.MANUTENCAO:
         Maintenance maintenance = listDespesas[index] as Maintenance;
+        data = "Dia ${maintenance.data.day} às ${maintenance.data.hour}:${maintenance.data.minute}";
         tipo = "Manutenção";
-        imagem = "assets/manutencao.png";
-        preco = maintenance.total.toString();
         break;
       case GastoType.PRODUTO:
         Item item = listDespesas[index] as Item;
+        data = "Dia ${item.data.day} às ${item.data.hour}:${item.data.minute}";
         tipo = "Produto";
-        imagem = "assets/manutencao.png";
-        preco = item.total.toString();
         break;
       case GastoType.REVISAO:
         Review review = listDespesas[index] as Review;
+        data = "Dia ${review.data.day} às ${review.data.hour}:${review.data.minute}";
         tipo = "Revisão";
-        imagem = "assets/manutencao.png";
-        preco = review.total.toString();
         break;
     }
 
@@ -383,7 +318,7 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Image.asset(
-                    imagem,
+                    (listDespesas[index] as Gasto).imagem,
                     width: 40,
                   ),
                 ),
@@ -403,7 +338,7 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
                         textAlign: TextAlign.left,
                       ),
                       Text(
-                        "1 de abril",
+                        "",
                         maxLines: 1,
                         style: Theme.of(context).textTheme.display2,
                         textAlign: TextAlign.left,
@@ -437,60 +372,129 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
     );
   }
 
-  Widget listView2() {
-    return ListView.builder(
-      itemCount: listDespesas == null ? 0 : listDespesas.length,
-      itemBuilder: (BuildContext context, int index) {
-        return item2(index);
+  void showDialogLogOut() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Atualizar kilometragem"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              kmInicio == 0 ? kilometragemInicioInput() : Container(),
+              kilometragemInput(),
+            ],
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text(CANCELAR),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            FlatButton(
+              child: Text(SALVAR),
+              onPressed: atualizarKilometragem,
+            ),
+          ],
+        );
       },
     );
   }
 
-  Widget formOpcoes() {
-    return Column(
-      children: <Widget>[
-        Padding(
-          padding: EdgeInsets.fromLTRB(8, 8, 8, 8),
-          child: Column(
-            children: <Widget>[
-              novoGastoButton(),
-
-//              listDespesas == null ?
-//                Container()
-//                  :
-//                ListView.builder(
-//                  itemCount: listDespesas.length,
-//                  itemBuilder: (BuildContext context, int index) {
-//                    return Padding(
-//                      padding: EdgeInsets.fromLTRB(0, 8, 0, 0),
-//                      child: item(),
-//                    );
-//                  },
-//                ),
-
-
-//              Padding(
-//                padding: EdgeInsets.fromLTRB(0, 8, 0, 0),
-//                child: item2(),
-//              ),
-//              Padding(
-//                padding: EdgeInsets.fromLTRB(0, 8, 0, 0),
-//                child: item2(),
-//              ),
-//              Padding(
-//                padding: EdgeInsets.fromLTRB(0, 8, 0, 0),
-//                child: item2(),
-//              ),
-//              Padding(
-//                padding: EdgeInsets.fromLTRB(0, 8, 0, 0),
-//                child: item2(),
-//              ),
-
-            ],
+  Widget kilometragemInicioInput() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
+      child: TextFormField(
+        textAlign: TextAlign.center,
+        maxLines: 1,
+        keyboardType: TextInputType.number,
+        style: Theme.of(context).textTheme.body2,
+        textCapitalization: TextCapitalization.words,
+        //controller: _controllerKilometragem,
+        decoration: InputDecoration(
+          labelText: "Km inicio",
+          //hintText: "(XX) X XXXX-XXXX",
+          //hintStyle: Theme.of(context).textTheme.body2,
+          labelStyle: Theme.of(context).textTheme.body2,
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Theme.of(context).errorColor),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Theme.of(context).errorColor),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Theme.of(context).hintColor),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Theme.of(context).primaryColor),
           ),
         ),
-      ],
+        onChanged: (value) {
+          kmInicio = int.parse(value);
+        },
+      ),
     );
+  }
+
+  Widget kilometragemInput() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+      child: TextFormField(
+        textAlign: TextAlign.center,
+        maxLines: 1,
+        keyboardType: TextInputType.number,
+        style: Theme.of(context).textTheme.body2,
+        textCapitalization: TextCapitalization.words,
+        controller: _controllerKilometragem,
+        decoration: InputDecoration(
+          labelText: "Km atual",
+          //hintText: "(XX) X XXXX-XXXX",
+          //hintStyle: Theme.of(context).textTheme.body2,
+          labelStyle: Theme.of(context).textTheme.body2,
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Theme.of(context).errorColor),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Theme.of(context).errorColor),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Theme.of(context).hintColor),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Theme.of(context).primaryColor),
+          ),
+        ),
+        onChanged: (value) {
+          kmAtualTemp = int.parse(value);
+        },
+      ),
+    );
+  }
+
+  void atualizarKilometragem() {
+    if (kmAtualTemp != 0) {
+      _controllerKilometragem.clear();
+      setState(() {
+        if (currentMonth.kmInicio != kmInicio) {
+          currentMonth.kmInicio = kmInicio;
+        }
+        currentMonth.kmFim = kmAtualTemp;
+        kmRodados = currentMonth.kmRodados();
+      });
+      presenter.update(currentMonth);
+      kmAtualTemp = 0;
+      Navigator.of(context).pop();
+      ScaffoldSnackBar.success(context, _scaffoldKey, "Kilometragem atualizada");
+    }
   }
 
 }

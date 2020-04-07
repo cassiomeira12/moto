@@ -1,11 +1,13 @@
 
 class Gasto {
   GastoType type;
+  double total;
+  String imagem;
 }
 
 enum GastoType {
   COMBUSTIVEL,
-  PRODUTO,
   MANUTENCAO,
+  PRODUTO,
   REVISAO,
 }

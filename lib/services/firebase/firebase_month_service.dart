@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:moto/contract/month/month_contract.dart';
+import 'package:moto/model/base_model.dart';
 import 'package:moto/model/base_user.dart';
 import 'package:moto/model/fuel.dart';
 import 'package:moto/model/gasto.dart';
@@ -17,8 +18,15 @@ class FirebaseMonthService implements MonthContractService {
       .collection(Month.getCollection());
 
   @override
-  Future<Month> create(Month item) {
-
+  Future<Month> create(Month item) async {
+    String uId = item.getUid();//_collection.document().documentID;
+    item.setUid(uId);
+    return await _collection.document(uId).setData(item.toMap()).then((result) {
+      return item;
+    }).catchError((error) {
+      print("Erro ${error.toString()}");
+      return null;
+    });
   }
 
   @override
@@ -32,11 +40,15 @@ class FirebaseMonthService implements MonthContractService {
   }
 
   @override
-  Future<Month> read(Month item) {
+  Future<Month> read(Month item) async {
     String uId = item.getUid();
-    return _collection.document(uId).get().then((result) async {
-      return Month.fromMap(result.data);
+    return await _collection.document(uId).get().then((result) async {
+      if (result.exists) {
+        return Month.fromMap(result.data);
+      }
+      return await create(item);
     }).catchError((error) {
+      print(error);
       return null;
     });
   }
@@ -53,49 +65,58 @@ class FirebaseMonthService implements MonthContractService {
   @override
   Future<dynamic> addDespesa(Month month, item) async {
     String uId = _collection.document().documentID;
-    if ((item as Gasto).type == GastoType.MANUTENCAO) {
-      Maintenance maintenance = item as Maintenance;
-      maintenance.setUid(uId);
-      return await _collection.document(month.getUid()).collection("despesas").document(uId).setData(maintenance.toMap()).then((result) {
-        return maintenance;
-      }).catchError((error) {
-        print(error.toString());
-        print(error.message);
-        return null;
-      });
-    } else if ((item as Gasto).type == GastoType.PRODUTO) {
-      print("Produto");
-      Item produto = item as Item;
-      produto.setUid(uId);
-      return await _collection.document(month.getUid()).collection("despesas").document(uId).setData(produto.toMap()).then((result) {
-        return produto;
-      }).catchError((error) {
-        print(error.toString());
-        print(error.message);
-        return null;
-      });
-    } else if ((item as Gasto).type == GastoType.REVISAO) {
-      print("Revisao");
-      Review review = item as Review;
-      review.setUid(uId);
-      return await _collection.document(month.getUid()).collection("despesas").document(uId).setData(review.toMap()).then((result) {
-        return review;
-      }).catchError((error) {
-        print(error.toString());
-        print(error.message);
-        return null;
-      });
-    } else if ((item as Gasto).type == GastoType.COMBUSTIVEL) {
-      Fuel combustivel = item as Fuel;
-      combustivel.setUid(uId);
-      return await _collection.document(month.getUid()).collection("despesas").document(uId).setData(combustivel.toMap()).then((result) {
-        return combustivel;
-      }).catchError((error) {
-        print(error.toString());
-        print(error.message);
-        return null;
-      });
-    }
+//    if ((item as Gasto).type == GastoType.MANUTENCAO) {
+//      Maintenance maintenance = item as Maintenance;
+//      maintenance.setUid(uId);
+//      return await _collection.document(month.getUid()).collection("despesas").document(uId).setData(maintenance.toMap()).then((result) {
+//        return maintenance;
+//      }).catchError((error) {
+//        print(error.toString());
+//        print(error.message);
+//        return null;
+//      });
+//    } else if ((item as Gasto).type == GastoType.PRODUTO) {
+//      print("Produto");
+//      Item produto = item as Item;
+//      produto.setUid(uId);
+//      return await _collection.document(month.getUid()).collection("despesas").document(uId).setData(produto.toMap()).then((result) {
+//        return produto;
+//      }).catchError((error) {
+//        print(error.toString());
+//        print(error.message);
+//        return null;
+//      });
+//    } else if ((item as Gasto).type == GastoType.REVISAO) {
+//      print("Revisao");
+//      Review review = item as Review;
+//      review.setUid(uId);
+//      return await _collection.document(month.getUid()).collection("despesas").document(uId).setData(review.toMap()).then((result) {
+//        return review;
+//      }).catchError((error) {
+//        print(error.toString());
+//        print(error.message);
+//        return null;
+//      });
+//    } else if ((item as Gasto).type == GastoType.COMBUSTIVEL) {
+//      Fuel combustivel = item as Fuel;
+//      combustivel.setUid(uId);
+//      return await _collection.document(month.getUid()).collection("despesas").document(uId).setData(combustivel.toMap()).then((result) {
+//        return combustivel;
+//      }).catchError((error) {
+//        print(error.toString());
+//        print(error.message);
+//        return null;
+//      });
+//    }
+    (item as BaseModel).setUid(uId);
+    return await _collection.document(month.getUid()).collection("despesas").document(uId).setData((item as BaseModel).toMap()).timeout(Duration(seconds: 10)).then((result) {
+      print("result");
+      return item;
+    }).catchError((error) {
+      print(error.toString());
+      print(error.message);
+      return null;
+    });
   }
 
   @override

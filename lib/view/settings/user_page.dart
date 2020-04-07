@@ -94,7 +94,7 @@ class _UserState extends State<UserPage> implements UserContractView {
             txtChangePhoto(),
             nameUser(),
             emailUser(),
-            phoneNumberUser(),
+            //phoneNumberUser(),
             changePasswordButton(),
           ],
         ),

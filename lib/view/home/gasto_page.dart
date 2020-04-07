@@ -14,6 +14,7 @@ import 'package:moto/view/widgets/rounded_shape.dart';
 import 'package:moto/view/widgets/scaffold_snackbar.dart';
 import 'package:moto/view/widgets/shape_round.dart';
 import 'package:flutter/material.dart';
+import 'package:progress_dialog/progress_dialog.dart';
 
 class GastoPage extends StatefulWidget {
   GastoPage({this.month});
@@ -40,9 +41,12 @@ class _GastoPageState extends State<GastoPage> implements MonthContractView {
   var _controllerLitros = MoneyMaskedTextController(rightSymbol: ' L', decimalSeparator: '.', thousandSeparator: ',');
   var _controllerQuantidade = TextEditingController();
 
+  ProgressDialog pr;
+
   @override
   void initState() {
     super.initState();
+    pr = ProgressDialog(context);
     presenter = MouthPresenter(this);
   }
 
@@ -114,15 +118,13 @@ class _GastoPageState extends State<GastoPage> implements MonthContractView {
 
   @override
   onFailure(String error) {
+    pr.dismiss();
     ScaffoldSnackBar.failure(context, _scaffoldKey, error);
   }
 
   @override
-  onSuccess(Month result) {
-    ScaffoldSnackBar.success(context, _scaffoldKey, "Sucesso!");
-//    setState(() {
-//      currentMonth = result;
-//    });
+  onSuccess(dynamic result) {
+
   }
 
   Widget tipoGasto() {
@@ -142,7 +144,13 @@ class _GastoPageState extends State<GastoPage> implements MonthContractView {
           items: GastoType.values.map<DropdownMenuItem<String>>((GastoType value) {
             return DropdownMenuItem<String>(
               value: value.toString().split(".").last,
-              child: Text(value.toString().split(".").last),
+              child: Row(
+                children: <Widget>[
+                  Image.asset("assets/${value.toString().split(".").last.toLowerCase()}.png", width: 40,),
+                  SizedBox(width: 20,),
+                  Text(value.toString().split(".").last),
+                ],
+              ),
             );
           }).toList(),
           onChanged: (value) {
@@ -273,6 +281,7 @@ class _GastoPageState extends State<GastoPage> implements MonthContractView {
         textAlign: TextAlign.center,
         maxLines: 1,
         keyboardType: TextInputType.text,
+        textCapitalization: TextCapitalization.words,
         style: Theme.of(context).textTheme.body2,
         controller: _controllerProduto,
         decoration: InputDecoration(
@@ -350,8 +359,8 @@ class _GastoPageState extends State<GastoPage> implements MonthContractView {
         controller: _controllerPreco,
         decoration: InputDecoration(
           labelText: "Preço",
-          //hintText: "(XX) X XXXX-XXXX",
-          //hintStyle: Theme.of(context).textTheme.body2,
+          hintText: "R\$: 0.00",
+          hintStyle: Theme.of(context).textTheme.body2,
           labelStyle: Theme.of(context).textTheme.body2,
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
@@ -388,8 +397,8 @@ class _GastoPageState extends State<GastoPage> implements MonthContractView {
         controller: _controllerLitros,
         decoration: InputDecoration(
           labelText: "Litros",
-          //hintText: "(XX) X XXXX-XXXX",
-          //hintStyle: Theme.of(context).textTheme.body2,
+          hintText: "1.00 L",
+          hintStyle: Theme.of(context).textTheme.body2,
           labelStyle: Theme.of(context).textTheme.body2,
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
@@ -424,38 +433,84 @@ class _GastoPageState extends State<GastoPage> implements MonthContractView {
     } else if (_tipoGasto == GastoType.REVISAO.toString().split(".").last) {
       salvarGastoRevisao();
     }
+    FocusScope.of(context).requestFocus(FocusNode()); //Fecha teclado
   }
 
-  void salvarGastoCombustivel() {
+  void salvarGastoCombustivel() async {
+    if (_controllerLitros.text.isEmpty ||
+        _controllerPreco.text.isEmpty) {
+      ScaffoldSnackBar.failure(context, _scaffoldKey, "Preencha todos os dados!");
+      return;
+    }
+
     Fuel combustivel = Fuel();
     combustivel.combustivel = _tipoCombustivel;
     combustivel.litros = _controllerLitros.numberValue;
     combustivel.total = _controllerPreco.numberValue;
     combustivel.data = DateTime.now();
 
-    presenter.addDespesa(widget.month, combustivel);
+    pr.show();
+    Fuel result = await presenter.addDespesa(widget.month, combustivel);
+    pr.dismiss();
+    ScaffoldSnackBar.success(context, _scaffoldKey, "Gasto de Combustível adicionado!");
+    await Future.delayed(const Duration(seconds: 1));
+    Navigator.pop(context, result);
   }
 
-  void salvarGastoManutencao() {
+  void salvarGastoManutencao() async {
+    if (_controllerPreco.text.isEmpty) {
+      ScaffoldSnackBar.failure(context, _scaffoldKey, "Preencha todos os dados!");
+      return;
+    }
+
     Maintenance maintenance = Maintenance();
     maintenance.total = _controllerPreco.numberValue;
     maintenance.data = DateTime.now();
 
-    presenter.addDespesa(widget.month, maintenance);
+    pr.show();
+    Maintenance result = await presenter.addDespesa(widget.month, maintenance);
+    pr.dismiss();
+    ScaffoldSnackBar.success(context, _scaffoldKey, "Gasto de Manutenção adicionado!");
+    await Future.delayed(const Duration(seconds: 1));
+    Navigator.pop(context, result);
   }
 
-  void salvarGastoProduto() {
+  void salvarGastoProduto() async {
+    if (_controllerProduto.text.isEmpty ||
+        _controllerQuantidade.text.isEmpty ||
+        _controllerPreco.text.isEmpty) {
+      ScaffoldSnackBar.failure(context, _scaffoldKey, "Preencha todos os dados!");
+      return;
+    }
+
     Item item = Item();
+    item.produto = _controllerProduto.text;
+    item.quantidade = double.parse(_controllerQuantidade.text);
     item.total = _controllerPreco.numberValue;
 
-    presenter.addDespesa(widget.month, item);
+    pr.show();
+    Item result = await presenter.addDespesa(widget.month, item);
+    pr.dismiss();
+    ScaffoldSnackBar.success(context, _scaffoldKey, "Gasto de Produto adicionado!");
+    await Future.delayed(const Duration(seconds: 1));
+    Navigator.pop(context, result);
   }
 
-  void salvarGastoRevisao() {
+  void salvarGastoRevisao() async {
+    if (_controllerPreco.text.isEmpty) {
+      ScaffoldSnackBar.failure(context, _scaffoldKey, "Preencha todos os dados!");
+      return;
+    }
+
     Review review = Review();
     review.total = _controllerPreco.numberValue;
 
-    presenter.addDespesa(widget.month, review);
+    pr.show();
+    Review result = await presenter.addDespesa(widget.month, review);
+    pr.dismiss();
+    ScaffoldSnackBar.success(context, _scaffoldKey, "Gasto de Revisão adicionado!");
+    await Future.delayed(const Duration(seconds: 1));
+    Navigator.pop(context, result);
   }
 
 }

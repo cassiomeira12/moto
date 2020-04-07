@@ -47,7 +47,8 @@ class MouthPresenter implements MonthContractPresenter {
       _view.onSuccess(value);
       return value;
     }).catchError((error) {
-      _view.onFailure(error.message);
+      print(error);
+      _view.onFailure(error);
       return null;
     });
   }
@@ -66,7 +67,6 @@ class MouthPresenter implements MonthContractPresenter {
   @override
   Future addDespesa(Month month, item) async {
     return await service.addDespesa(month, item).then((value) {
-      _view.onSuccess(value);
       return value;
     }).catchError((error) {
       _view.onFailure("algum erro");

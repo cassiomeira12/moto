@@ -5,13 +5,13 @@ import 'gasto.dart';
 class Maintenance extends Gasto implements BaseModel<Maintenance> {
 
   String _uId;
-  double total;
   DateTime data;
   String notaURL;
   String itens;
 
   Maintenance() {
     type = GastoType.MANUTENCAO;
+    imagem = "assets/manutencao.png";
   }
 
   @override
@@ -27,8 +27,10 @@ class Maintenance extends Gasto implements BaseModel<Maintenance> {
   Maintenance.fromMap(Map<dynamic, dynamic>  map) {
     type = GastoType.MANUTENCAO;
     _uId = map["uId"];
-    //data = map["data"] as DateTime;
+    data = DateTime.parse(map["data"]);
     total = map["total"] as double;
+
+    imagem = "assets/combustivel.png";
   }
 
   @override
@@ -36,7 +38,7 @@ class Maintenance extends Gasto implements BaseModel<Maintenance> {
     var map = new Map<String, dynamic>();
     map["uId"] = _uId;
     map["type"] = type.toString();
-    //map["data"] = data;
+    map["data"] = data.toString();
     map["total"] = total;
     return map;
   }

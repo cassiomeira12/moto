@@ -8,10 +8,10 @@ class Fuel extends Gasto implements BaseModel<Fuel> {
   String combustivel;
   DateTime data;
   double litros;
-  double total;
 
   Fuel() {
     type = GastoType.COMBUSTIVEL;
+    imagem = "assets/combustivel.png";
   }
 
   @override
@@ -28,9 +28,11 @@ class Fuel extends Gasto implements BaseModel<Fuel> {
     type = GastoType.COMBUSTIVEL;
     _uId = map["uId"];
     combustivel = map["combustivel"];
-    //data = map["data"] as DateTime;
+    data = DateTime.parse(map["data"]);
     litros = map["litros"] as double;
     total = map["total"] as double;
+
+    imagem = "assets/combustivel.png";
   }
 
   @override
@@ -39,7 +41,7 @@ class Fuel extends Gasto implements BaseModel<Fuel> {
     map["uId"] = _uId;
     map["type"] = type.toString();
     map["combustivel"] = combustivel;
-    //map["data"] = data;
+    map["data"] = data.toString();
     map["litros"] = litros;
     map["total"] = total;
     return map;

@@ -7,10 +7,11 @@ class Item extends Gasto implements BaseModel<Item> {
   String _uId;
   String produto;
   double quantidade;
-  double total;
+  DateTime data;
 
   Item() {
     type = GastoType.PRODUTO;
+    imagem = "assets/produto.png";
   }
 
   @override
@@ -29,6 +30,9 @@ class Item extends Gasto implements BaseModel<Item> {
     produto = map["produto"];
     quantidade = map["quantidade"] as double;
     total = map["total"] as double;
+    data = DateTime.parse(map["data"]);
+
+    imagem = "assets/produto.png";
   }
 
   @override
@@ -39,6 +43,8 @@ class Item extends Gasto implements BaseModel<Item> {
     map["produto"] = produto;
     map["quantidade"] = quantidade;
     map["total"] = total;
+    map["data"] = data.toString();
+
     return map;
   }
 

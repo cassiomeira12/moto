@@ -5,12 +5,13 @@ import 'gasto.dart';
 class Review extends Gasto implements BaseModel<Review> {
 
   String _uId;
-  double total;
   String notaURL;
   String itens;
+  DateTime data;
 
   Review() {
     type = GastoType.REVISAO;
+    imagem = "assets/revisao.png";
   }
 
   @override
@@ -26,8 +27,10 @@ class Review extends Gasto implements BaseModel<Review> {
   Review.fromMap(Map<dynamic, dynamic>  map) {
     type = GastoType.REVISAO;
     _uId = map["uId"];
-    //data = map["data"] as DateTime;
+    data = DateTime.parse(map["data"]);
     total = map["total"] as double;
+
+    imagem = "assets/revisao.png";
   }
 
   @override
@@ -35,7 +38,7 @@ class Review extends Gasto implements BaseModel<Review> {
     var map = new Map<String, dynamic>();
     map["uId"] = _uId;
     map["type"] = type.toString();
-    //map["data"] = data;
+    map["data"] = data.toString();
     map["total"] = total;
     return map;
   }

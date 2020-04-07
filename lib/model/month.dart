@@ -4,8 +4,8 @@ class Month implements BaseModel<Month> {
   static getCollection() => "meses";
 
   String _uId;
-  int kmInicio;
-  int kmFim;
+  int kmInicio = 0;
+  int kmFim = 0;
 
   Month();
 
@@ -21,8 +21,8 @@ class Month implements BaseModel<Month> {
 
   Month.fromMap(Map<dynamic, dynamic>  map) {
     _uId = map["uId"];
-    kmInicio = map["kmInicio"];
-    kmFim = map["kmFim"];
+    kmInicio = map["kmInicio"] as int;
+    kmFim = map["kmFim"] as int;
   }
 
   @override
@@ -36,8 +36,9 @@ class Month implements BaseModel<Month> {
 
   @override
   update(Month item) {
-    // TODO: implement update
-    throw UnimplementedError();
+    _uId = item.getUid();
+    kmInicio = item.kmInicio;
+    kmFim = item.kmFim;
   }
 
   int kmRodados() {
