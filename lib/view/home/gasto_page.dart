@@ -452,7 +452,11 @@ class _GastoPageState extends State<GastoPage> implements MonthContractView {
     pr.show();
     Fuel result = await presenter.addDespesa(widget.month, combustivel);
     pr.dismiss();
-    ScaffoldSnackBar.success(context, _scaffoldKey, "Gasto de Combustível adicionado!");
+    if (result == null) {
+      ScaffoldSnackBar.success(context, _scaffoldKey, "Adicionado offline");
+    } else {
+      ScaffoldSnackBar.success(context, _scaffoldKey, "Gasto de Combustível adicionado!");
+    }
     await Future.delayed(const Duration(seconds: 1));
     Navigator.pop(context, result);
   }
@@ -470,7 +474,11 @@ class _GastoPageState extends State<GastoPage> implements MonthContractView {
     pr.show();
     Maintenance result = await presenter.addDespesa(widget.month, maintenance);
     pr.dismiss();
-    ScaffoldSnackBar.success(context, _scaffoldKey, "Gasto de Manutenção adicionado!");
+    if (result == null) {
+      ScaffoldSnackBar.success(context, _scaffoldKey, "Adicionado offline");
+    } else {
+      ScaffoldSnackBar.success(context, _scaffoldKey, "Gasto de Manutenção adicionado!");
+    }
     await Future.delayed(const Duration(seconds: 1));
     Navigator.pop(context, result);
   }
@@ -487,11 +495,16 @@ class _GastoPageState extends State<GastoPage> implements MonthContractView {
     item.produto = _controllerProduto.text;
     item.quantidade = double.parse(_controllerQuantidade.text);
     item.total = _controllerPreco.numberValue;
+    item.data = DateTime.now();
 
     pr.show();
     Item result = await presenter.addDespesa(widget.month, item);
     pr.dismiss();
-    ScaffoldSnackBar.success(context, _scaffoldKey, "Gasto de Produto adicionado!");
+    if (result == null) {
+      ScaffoldSnackBar.success(context, _scaffoldKey, "Adicionado offline");
+    } else {
+      ScaffoldSnackBar.success(context, _scaffoldKey, "Gasto de Produto adicionado!");
+    }
     await Future.delayed(const Duration(seconds: 1));
     Navigator.pop(context, result);
   }
@@ -504,11 +517,16 @@ class _GastoPageState extends State<GastoPage> implements MonthContractView {
 
     Review review = Review();
     review.total = _controllerPreco.numberValue;
+    review.data = DateTime.now();
 
     pr.show();
     Review result = await presenter.addDespesa(widget.month, review);
     pr.dismiss();
-    ScaffoldSnackBar.success(context, _scaffoldKey, "Gasto de Revisão adicionado!");
+    if (result == null) {
+      ScaffoldSnackBar.success(context, _scaffoldKey, "Adicionado offline");
+    } else {
+      ScaffoldSnackBar.success(context, _scaffoldKey, "Gasto de Revisão adicionado!");
+    }
     await Future.delayed(const Duration(seconds: 1));
     Navigator.pop(context, result);
   }

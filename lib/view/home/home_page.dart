@@ -81,7 +81,12 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
               floating: false,
               pinned: false, //barra
               flexibleSpace: FlexibleSpaceBar(
-                title: Text("Mês de Abril"),
+                title: Text(
+                  "Mês de Abril",
+                  style: TextStyle(
+                    color: Colors.white
+                  ),
+                ),
                 centerTitle: true,
                 collapseMode: CollapseMode.pin,
                 background: _showForm(),
@@ -287,22 +292,22 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
     switch((listDespesas[index] as Gasto).type) {
       case GastoType.COMBUSTIVEL:
         Fuel fuel = listDespesas[index] as Fuel;
-        data = "Dia ${fuel.data.day} às ${fuel.data.hour}:${fuel.data.minute}";
+        //data = "Dia ${fuel.data.day} às ${fuel.data.hour}:${fuel.data.minute}";
         tipo = "Combustível";
         break;
       case GastoType.MANUTENCAO:
         Maintenance maintenance = listDespesas[index] as Maintenance;
-        data = "Dia ${maintenance.data.day} às ${maintenance.data.hour}:${maintenance.data.minute}";
+        //data = "Dia ${maintenance.data.day} às ${maintenance.data.hour}:${maintenance.data.minute}";
         tipo = "Manutenção";
         break;
       case GastoType.PRODUTO:
         Item item = listDespesas[index] as Item;
-        data = "Dia ${item.data.day} às ${item.data.hour}:${item.data.minute}";
+        //data = "Dia ${item.data.day} às ${item.data.hour}:${item.data.minute}";
         tipo = "Produto";
         break;
       case GastoType.REVISAO:
         Review review = listDespesas[index] as Review;
-        data = "Dia ${review.data.day} às ${review.data.hour}:${review.data.minute}";
+        //data = "Dia ${review.data.day} às ${review.data.hour}:${review.data.minute}";
         tipo = "Revisão";
         break;
     }
@@ -338,7 +343,7 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
                         textAlign: TextAlign.left,
                       ),
                       Text(
-                        "",
+                        "Data",
                         maxLines: 1,
                         style: Theme.of(context).textTheme.display2,
                         textAlign: TextAlign.left,
