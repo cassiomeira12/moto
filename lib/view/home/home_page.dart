@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:moto/contract/month/month_contract.dart';
 import 'package:moto/main.dart';
 import 'package:moto/model/fuel.dart';
@@ -8,8 +9,10 @@ import 'package:moto/model/item.dart';
 import 'package:moto/model/maintenance.dart';
 import 'package:moto/model/month.dart';
 import 'package:moto/model/review.dart';
+import 'package:moto/model/singleton/singleton_month.dart';
 import 'package:moto/presenter/month/month_presenter.dart';
 import 'package:moto/strings.dart';
+import 'package:moto/utils/date_util.dart';
 import 'package:moto/view/home/gasto_page.dart';
 import 'package:moto/view/widgets/scaffold_snackbar.dart';
 import 'package:moto/view/widgets/secondary_button.dart';
@@ -18,14 +21,28 @@ import 'package:flutter/material.dart';
 import '../page_router.dart';
 
 class HomePage extends StatefulWidget {
+  _HomePageState page;
+  List<dynamic> listDespesas;
 
   @override
-  State<StatefulWidget> createState() => _HomePageState();
+  State<StatefulWidget> createState() {
+    page = _HomePageState();
+    return page;
+  }
+
+  void addDespesa(dynamic despesa) {
+    page.setState(() {
+      page.totalMes += (despesa as Gasto).total;
+      listDespesas.add(despesa);
+    });
+  }
 }
 
 class _HomePageState extends State<HomePage> implements MonthContractView {
   final _formKey = new GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  String month = "";
 
   var _controllerKilometragem = TextEditingController();
 
@@ -35,15 +52,15 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
   double totalMes = 0.0;
   int kmInicio, kmAtualTemp = 0, kmRodados;
 
-  List<dynamic> listDespesas;
-
   @override
   void initState() {
     super.initState();
     presenter = MouthPresenter(this);
-    currentMonth = Month();
-    currentMonth.setUid("0${DateTime.now().month}${DateTime.now().year}");
-    //currentMonth.setUid("03${DateTime.now().year}");
+    month = "Mês de ${DateUtil.getMonth(DateTime.now())}";
+    if (SingletonMonth.instance.id == null) {
+      SingletonMonth.instance.id = DateUtil.getNumberMonth(DateTime.now()) + DateUtil.getNumberYear(DateTime.now());
+    }
+    currentMonth = SingletonMonth.instance;
     presenter.read(currentMonth);
     list();
   }
@@ -61,7 +78,7 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
     });
     setState(() {
       totalMes = total;
-      listDespesas = list;
+      widget.listDespesas = list;
     });
   }
 
@@ -77,12 +94,12 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
           return <Widget>[
             SliverAppBar(
-              expandedHeight: 300,
+              expandedHeight: 250,
               floating: false,
               pinned: false, //barra
               flexibleSpace: FlexibleSpaceBar(
                 title: Text(
-                  "Mês de Abril",
+                  month,
                   style: TextStyle(
                     color: Colors.white
                   ),
@@ -94,8 +111,11 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
             ),
           ];
         },
-        body: ListView.builder(
-          itemCount: listDespesas == null ? 0 : listDespesas.length,
+        body: (widget.listDespesas == null || widget.listDespesas.isEmpty) ?
+        semDespesas()
+          :
+        ListView.builder(
+          itemCount: widget.listDespesas == null ? 0 : widget.listDespesas.length,
           itemBuilder: (context, index) {
             return gastoWidget(index);
           },
@@ -111,10 +131,11 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
 
   @override
   onSuccess(Month result) {
+    SingletonMonth.instance.update(result);
     kmInicio = result.kmInicio;
     kmRodados = result.kmRodados();
     setState(() {
-      currentMonth = result;
+      currentMonth.update(SingletonMonth.instance);
     });
   }
 
@@ -230,13 +251,31 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
                   ),
                 ),
 
-                novoGastoButton(),
+                //novoGastoButton(),
 
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget semDespesas() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Padding(
+          padding: EdgeInsets.fromLTRB(0, 12, 0, 8),
+          child: Center(
+            child: Text(
+              "Sem despesas",
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.body2,
+            ),
+          ),
+        )
+      ],
     );
   }
 
@@ -278,7 +317,7 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
           );
           setState(() {
             totalMes += (result as Gasto).total;
-            listDespesas.add(result);
+            widget.listDespesas.add(result);
           });
         },
       ),
@@ -287,26 +326,26 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
 
   Widget gastoWidget(int index) {
     String tipo, preco, data;
-    preco = (listDespesas[index] as Gasto).total.toString();
+    preco = (widget.listDespesas[index] as Gasto).total.toString();
 
-    switch((listDespesas[index] as Gasto).type) {
+    switch((widget.listDespesas[index] as Gasto).type) {
       case GastoType.COMBUSTIVEL:
-        Fuel fuel = listDespesas[index] as Fuel;
+        Fuel fuel = widget.listDespesas[index] as Fuel;
         //data = "Dia ${fuel.data.day} às ${fuel.data.hour}:${fuel.data.minute}";
         tipo = "Combustível";
         break;
       case GastoType.MANUTENCAO:
-        Maintenance maintenance = listDespesas[index] as Maintenance;
+        Maintenance maintenance = widget.listDespesas[index] as Maintenance;
         //data = "Dia ${maintenance.data.day} às ${maintenance.data.hour}:${maintenance.data.minute}";
         tipo = "Manutenção";
         break;
       case GastoType.PRODUTO:
-        Item item = listDespesas[index] as Item;
+        Item item = widget.listDespesas[index] as Item;
         //data = "Dia ${item.data.day} às ${item.data.hour}:${item.data.minute}";
         tipo = "Produto";
         break;
       case GastoType.REVISAO:
-        Review review = listDespesas[index] as Review;
+        Review review = widget.listDespesas[index] as Review;
         //data = "Dia ${review.data.day} às ${review.data.hour}:${review.data.minute}";
         tipo = "Revisão";
         break;
@@ -323,7 +362,7 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Image.asset(
-                    (listDespesas[index] as Gasto).imagem,
+                    (widget.listDespesas[index] as Gasto).imagem,
                     width: 40,
                   ),
                 ),

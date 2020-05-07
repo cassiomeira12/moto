@@ -1,34 +1,23 @@
 import 'package:moto/model/base_model.dart';
 
 class Month implements BaseModel<Month> {
-  static getCollection() => "meses";
-
-  String _uId;
+  @override
+  String id;
   int kmInicio = 0;
   int kmFim = 0;
 
   Month();
 
-  @override
-  String getUid() {
-    return _uId;
-  }
-
-  @override
-  setUid(String uId) {
-    this._uId = uId;
-  }
-
   Month.fromMap(Map<dynamic, dynamic>  map) {
-    _uId = map["uId"];
+    id = map["uId"];
     kmInicio = map["kmInicio"] as int;
     kmFim = map["kmFim"] as int;
   }
 
   @override
   toMap() {
-    var map = new Map<String, dynamic>();
-    map['uId'] = _uId;
+    var map = Map<String, dynamic>();
+    map['uId'] = id;
     map['kmInicio'] = kmInicio;
     map['kmFim'] = kmFim;
     return map;
@@ -36,7 +25,7 @@ class Month implements BaseModel<Month> {
 
   @override
   update(Month item) {
-    _uId = item.getUid();
+    id = item.id;
     kmInicio = item.kmInicio;
     kmFim = item.kmFim;
   }

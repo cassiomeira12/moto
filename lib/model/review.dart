@@ -3,8 +3,8 @@ import 'package:moto/model/base_model.dart';
 import 'gasto.dart';
 
 class Review extends Gasto implements BaseModel<Review> {
-
-  String _uId;
+  @override
+  String id;
   String notaURL;
   String itens;
   DateTime data;
@@ -14,19 +14,9 @@ class Review extends Gasto implements BaseModel<Review> {
     imagem = "assets/revisao.png";
   }
 
-  @override
-  String getUid() {
-    return _uId;
-  }
-
-  @override
-  setUid(String uId) {
-    this._uId = uId;
-  }
-
   Review.fromMap(Map<dynamic, dynamic>  map) {
     type = GastoType.REVISAO;
-    _uId = map["uId"];
+    id = map["uId"];
     data = DateTime.parse(map["data"]);
     total = map["total"] as double;
 
@@ -35,8 +25,8 @@ class Review extends Gasto implements BaseModel<Review> {
 
   @override
   toMap() {
-    var map = new Map<String, dynamic>();
-    map["uId"] = _uId;
+    var map = Map<String, dynamic>();
+    map["uId"] = id;
     map["type"] = type.toString();
     map["data"] = data.toString();
     map["total"] = total;

@@ -1,7 +1,5 @@
 abstract class BaseModel<T> {
-  BaseModel();
+  String id;
   update(T item);
-  toMap();
-  String getUid();
-  setUid(String uId);
+  Map<String, dynamic> toMap();
 }

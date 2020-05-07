@@ -16,7 +16,7 @@ class FirebaseLoginService extends LoginContractService {
   @override
   signIn(String email, String password) async {
     _firebaseAuth.signInWithEmailAndPassword(email: email, password: password).then((AuthResult result) async {
-      Crud<BaseUser> crud = FirebaseUserService();
+      Crud<BaseUser> crud = FirebaseUserService("users");
       List<BaseUser> list =  await crud.findBy("email", email);
 
       if (list == null) {
@@ -49,7 +49,7 @@ class FirebaseLoginService extends LoginContractService {
       accessToken: googleSignInAuthentication.idToken,
     );
     await _firebaseAuth.signInWithCredential(credential).then((AuthResult result) async {
-      Crud<BaseUser> crud = FirebaseUserService();
+      Crud<BaseUser> crud = FirebaseUserService("users");
       List<BaseUser> list =  await crud.findBy("email", result.user.email);
 
       if (list == null) {

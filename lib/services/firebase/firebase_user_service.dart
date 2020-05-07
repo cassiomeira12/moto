@@ -1,6 +1,6 @@
 import 'dart:io';
+import 'package:moto/utils/log_util.dart';
 import 'package:path/path.dart' as Path;
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:moto/contract/user/user_contract.dart';
 import 'package:moto/model/base_user.dart';
@@ -8,86 +8,80 @@ import 'package:moto/model/singleton/singleton_user.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
+import 'base_firebase_service.dart';
+
 class FirebaseUserService implements UserContractService {
-  CollectionReference _collection = Firestore.instance.collection(BaseUser.getCollection());
+  CollectionReference _collection;
+  BaseFirebaseService _firebaseCrud;
+
+  FirebaseUserService(String path) {
+    _firebaseCrud = BaseFirebaseService(path);
+    _collection = _firebaseCrud.collection;
+  }
 
   @override
   Future<BaseUser> create(BaseUser item) async {
-    String uId = _collection.document().documentID;
+    item.password = null;
+    return _firebaseCrud.create(item).then((response) {
+      return BaseUser.fromMap(response);
+    });
+  }
 
-    //Atualizando informacoes ao criar novo usuario
-    item.setUid(uId);
-    //user.notificationToken = PreferenceUtils(activity).getTokenNotification()
-    //user.createAt = DateTime();
-    //user.updateAt = DateTime();
-    //item.status = Status.ATIVO;
-    item.password = null; //Nao adicionar a senha no BD
-
-    return await _collection.document(uId).setData(item.toMap()).then((result) {
-      return item;
+  @override
+  Future<BaseUser> read(BaseUser item) {
+    return _firebaseCrud.read(item).then((response) {
+      return BaseUser.fromMap(response);
     }).catchError((error) {
-      print("Erro ${error.toString()}");
-      return null;
+      Log.e("Document ${item.id} not found");
+    });
+  }
+
+  @override
+  Future<BaseUser> update(BaseUser item) {
+    return _firebaseCrud.update(item).then((response) {
+      return BaseUser.fromMap(response);
+    }).catchError((error) {
+      Log.e("Document ${item.id} not found");
+    });
+  }
+
+  @override
+  Future<BaseUser> delete(BaseUser item) {
+    return _firebaseCrud.delete(item).then((response) {
+      return BaseUser.fromMap(response);
+    }).catchError((error) {
+      Log.e("Document ${item.id} not found");
     });
   }
 
   @override
   Future<List<BaseUser>> findBy(String field, value) async {
-    return await _collection.where(field, isEqualTo: value).getDocuments().then((value) {
-      var list = List<BaseUser>();
-      value.documents.forEach((element) {
-        list.add(BaseUser.fromMap(element.data));
-      });
-      return list;
-    }).catchError((error) {
-      print(error.message);
-      return null;
+    return _firebaseCrud.findBy(field, value).then((response) {
+      return response.map<BaseUser>((item) => BaseUser.fromMap(item)).toList();
+    });
+  }
+
+  @override
+  Future<List<BaseUser>> list() {
+    return _firebaseCrud.list().then((response) {
+      return response.map<BaseUser>((item) => BaseUser.fromMap(item)).toList();
     });
   }
 
   Future<BaseUser> findUserByEmail(String email) async {
     List<BaseUser> list =  await findBy("email", email);
 
-    if (list == null) {
-      return null;
-    }
+    if (list == null) return null;
 
     if (list.length == 1) {
       return list[0];
     } else if (list.length == 0) {
-      print("Usuário não encontrado");
+      Log.e("Usuário não encontrado");
       return null;
     } else {
-      print("Mais de 1 usuário com mesmo email");
+      Log.e("Mais de 1 usuário com mesmo email");
       return null;
     }
-  }
-
-  @override
-  Future<BaseUser> read(BaseUser item) {
-    String uId = item.getUid();
-    print("Read User $uId");
-    return _collection.document(uId).get().then((result) {
-      print("Documento exists ${result.exists}");
-      return BaseUser.fromMap(result.data);
-    }).catchError((error) {
-      print("Erro ${error.toString()}");
-      return null;
-    });
-  }
-
-  @override
-  Future<BaseUser> delete(BaseUser item) {
-    return null;
-  }
-
-  @override
-  Future<BaseUser> update(BaseUser item) {
-    return _collection.document(item.getUid()).updateData(item.toMap()).timeout(Duration(seconds: 5)).then((value) {
-      return item;
-    }).catchError((error) {
-      return null;
-    });
   }
 
   @override
@@ -111,7 +105,7 @@ class FirebaseUserService implements UserContractService {
   @override
   Future<String> changeUserPhoto(File image) async {
     String baseName = Path.basename(image.path);
-    String uID = SingletonUser.instance.getUid() + baseName.substring(baseName.length - 4);
+    String uID = SingletonUser.instance.id + baseName.substring(baseName.length - 4);
     StorageReference storageReference = FirebaseStorage.instance.ref().child("users/${uID}");
     StorageUploadTask uploadTask = storageReference.putFile(image);
     return await uploadTask.onComplete.then((value) async {
@@ -145,22 +139,7 @@ class FirebaseUserService implements UserContractService {
 
   @override
   Future<void> signOut() async {
-    //SingletonUser.instance.update(null);
     return await FirebaseAuth.instance.signOut();
-  }
-
-  Future<void> _createUser(BaseUser user) async {
-    String uId = _collection.document().documentID;
-    //Atualizando informacoes ao criar novo usuario
-    user.setUid(uId);
-    //user.notificationToken = PreferenceUtils(activity).getTokenNotification()
-    user.emailVerified = false;
-    //user.createAt = DateTime();
-    //user.updateAt = DateTime();
-    //user.status = Status.ATIVO;
-    user.password = null; //Nao adicionar a senha no BD
-
-    return _collection.document(uId).setData(user.toMap());
   }
 
   @override
@@ -170,7 +149,7 @@ class FirebaseUserService implements UserContractService {
     BaseUser user = await findUserByEmail(currentUser.email);
     if (user != null) {
       user.emailVerified = emailVerified;
-      _collection.document(user.getUid()).updateData(user.toMap());
+      _collection.document(user.id).updateData(user.toMap());
     }
     return emailVerified;
   }

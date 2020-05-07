@@ -1,8 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:moto/contract/month/month_contract.dart';
 import 'package:moto/model/base_model.dart';
-import 'package:moto/model/base_user.dart';
 import 'package:moto/model/fuel.dart';
 import 'package:moto/model/gasto.dart';
 import 'package:moto/model/item.dart';
@@ -10,22 +8,58 @@ import 'package:moto/model/maintenance.dart';
 import 'package:moto/model/month.dart';
 import 'package:moto/model/review.dart';
 import 'package:moto/model/singleton/singleton_user.dart';
+import 'package:moto/utils/date_util.dart';
+import 'package:moto/utils/log_util.dart';
+
+import 'base_firebase_service.dart';
 
 class FirebaseMonthService implements MonthContractService {
-  CollectionReference _collection = Firestore.instance
-      .collection(BaseUser.getCollection())
-      .document(SingletonUser.instance.getUid())
-      .collection(Month.getCollection());
+  CollectionReference _collection;
+  BaseFirebaseService _firebaseCrud;
+
+  FirebaseMonthService(String path) {
+    _firebaseCrud = BaseFirebaseService("users/${SingletonUser.instance.id}/$path");
+    _collection = _firebaseCrud.collection;
+  }
 
   @override
   Future<Month> create(Month item) async {
-    String uId = item.getUid();//_collection.document().documentID;
-    item.setUid(uId);
-    return await _collection.document(uId).setData(item.toMap()).then((result) {
-      return item;
+    return _firebaseCrud.create(item).then((response) {
+      return Month.fromMap(response);
+    });
+  }
+
+  @override
+  Future<Month> read(Month item) async {
+    return _firebaseCrud.read(item).then((response) async {
+      if (response == null) {// Criar um novo mês
+        var today = DateTime.now();
+        var prevMonth = DateTime(today.year, today.month - 1, today.day);
+        String mesAnterior = DateUtil.getNumberMonth(prevMonth) + DateUtil.getNumberYear(prevMonth);
+        var list = await findBy("uId", mesAnterior);
+        if (list == null || list.isEmpty) {
+          item.kmInicio = 0;
+          item.kmFim = 0;
+          return await create(item);
+        } else {
+          var lastMonth = list[0];
+          item.kmInicio = lastMonth.kmFim;
+          item.kmFim = lastMonth.kmFim;
+          return await create(item);
+        }
+      }
+      return Month.fromMap(response);
     }).catchError((error) {
-      print("Erro ${error.toString()}");
-      return null;
+      Log.e("Document ${item.id} not found");
+    });
+  }
+
+  @override
+  Future<Month> update(Month item) {
+    return _firebaseCrud.update(item).then((response) {
+      return Month.fromMap(response);
+    }).catchError((error) {
+      Log.e("Document ${item.id} not found");
     });
   }
 
@@ -36,97 +70,28 @@ class FirebaseMonthService implements MonthContractService {
 
   @override
   Future<List<Month>> findBy(String field, dynamic value) async {
-
-  }
-
-  @override
-  Future<Month> read(Month item) async {
-    String uId = item.getUid();
-    return await _collection.document(uId).get().then((result) async {
-      if (result.exists) {
-        return Month.fromMap(result.data);
-      }
-      return await create(item);
-    }).catchError((error) {
-      print(error);
-      return null;
-    });
-  }
-
-  @override
-  Future<Month> update(Month item) {
-    return _collection.document(item.getUid()).updateData(item.toMap()).timeout(Duration(seconds: 5)).then((value) {
-      return item;
-    }).catchError((error) {
-      return null;
+    return _firebaseCrud.findBy(field, value).then((response) {
+      return response.map<Month>((item) => Month.fromMap(item)).toList();
     });
   }
 
   @override
   Future<dynamic> addDespesa(Month month, item) async {
     String uId = _collection.document().documentID;
-//    if ((item as Gasto).type == GastoType.MANUTENCAO) {
-//      Maintenance maintenance = item as Maintenance;
-//      maintenance.setUid(uId);
-//      return await _collection.document(month.getUid()).collection("despesas").document(uId).setData(maintenance.toMap()).then((result) {
-//        return maintenance;
-//      }).catchError((error) {
-//        print(error.toString());
-//        print(error.message);
-//        return null;
-//      });
-//    } else if ((item as Gasto).type == GastoType.PRODUTO) {
-//      print("Produto");
-//      Item produto = item as Item;
-//      produto.setUid(uId);
-//      return await _collection.document(month.getUid()).collection("despesas").document(uId).setData(produto.toMap()).then((result) {
-//        return produto;
-//      }).catchError((error) {
-//        print(error.toString());
-//        print(error.message);
-//        return null;
-//      });
-//    } else if ((item as Gasto).type == GastoType.REVISAO) {
-//      print("Revisao");
-//      Review review = item as Review;
-//      review.setUid(uId);
-//      return await _collection.document(month.getUid()).collection("despesas").document(uId).setData(review.toMap()).then((result) {
-//        return review;
-//      }).catchError((error) {
-//        print(error.toString());
-//        print(error.message);
-//        return null;
-//      });
-//    } else if ((item as Gasto).type == GastoType.COMBUSTIVEL) {
-//      Fuel combustivel = item as Fuel;
-//      combustivel.setUid(uId);
-//      return await _collection.document(month.getUid()).collection("despesas").document(uId).setData(combustivel.toMap()).then((result) {
-//        return combustivel;
-//      }).catchError((error) {
-//        print(error.toString());
-//        print(error.message);
-//        return null;
-//      });
-//    }
-    (item as BaseModel).setUid(uId);
-    return await _collection.document(month.getUid()).collection("despesas").document(uId).setData((item as BaseModel).toMap()).timeout(Duration(seconds: 10)).then((result) {
+    (item as BaseModel).id = uId;
+    return await _collection.document(month.id).collection("despesas").document(uId).setData((item as BaseModel).toMap()).timeout(Duration(seconds: 10)).then((result) {
       print("result");
       return item;
     }).catchError((error) {
-      print(error.toString());
-      print(error.message);
+      Log.e(error);
       return null;
     });
   }
 
   @override
   Future<List> listDespesas(Month month) async {
-    String uId = month.getUid();
-    print("listDespesas: $uId");
+    String uId = month.id;
     return await _collection.document(uId).collection("despesas").getDocuments().then((value) {
-//      value.documents.forEach((element) {
-//        print(element.data["type"]);
-//      });
       return value.documents.map<dynamic>((item) {
         if (item.data["type"] == GastoType.MANUTENCAO.toString()) {
           return Maintenance.fromMap(item.data);
@@ -140,12 +105,9 @@ class FirebaseMonthService implements MonthContractService {
         return null;
       }).toList();
     }).catchError((error) {
-      print(error.toString());
-      print(error.message);
+      Log.e(error);
       return null;
     });
   }
-
-
 
 }

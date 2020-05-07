@@ -1,3 +1,4 @@
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:moto/contract/user/user_contract.dart';
 import 'package:moto/model/base_user.dart';
 import 'package:moto/model/singleton/singleton_user.dart';
@@ -187,7 +188,7 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
             children: <Widget>[
               Padding(
                 padding: EdgeInsets.fromLTRB(10.0, 0.0, 20.0, 0.0),
-                child: Icon(Icons.person_outline, color: Theme.of(context).iconTheme.color,),
+                child: FaIcon(FontAwesomeIcons.userAlt, color: Theme.of(context).iconTheme.color,),
               ),
               Expanded(
                 child: Text(
@@ -227,7 +228,7 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
             children: <Widget>[
               Padding(
                 padding: EdgeInsets.fromLTRB(10.0, 0.0, 20.0, 0.0),
-                child: Icon(Icons.notifications_none, color: Theme.of(context).iconTheme.color,),
+                child: FaIcon(FontAwesomeIcons.solidBell, color: Theme.of(context).iconTheme.color,),
               ),
               Expanded(
                 child: Text(
@@ -267,7 +268,7 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
             children: <Widget>[
               Padding(
                 padding: EdgeInsets.fromLTRB(10.0, 0.0, 20.0, 0.0),
-                child: Icon(Icons.color_lens, color: Theme.of(context).iconTheme.color,),
+                child: FaIcon(FontAwesomeIcons.palette, color: Theme.of(context).iconTheme.color,),
               ),
               Expanded(
                 child: Text(
@@ -283,7 +284,12 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
                   activeColor: Theme.of(context).accentColor,
                   onChanged: (value) {
                     setState(() {
-                      darkMode = value;
+                      darkMode = !darkMode;
+                      if (darkMode) {
+                        CustomTheme.instanceOf(context).changeTheme(MyThemeKeys.DARK);
+                      } else {
+                        CustomTheme.instanceOf(context).changeTheme(MyThemeKeys.LIGHT);
+                      }
                     });
                   },
                 ),
@@ -322,7 +328,7 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
             children: <Widget>[
               Padding(
                 padding: EdgeInsets.fromLTRB(10.0, 0.0, 20.0, 0.0),
-                child: Icon(Icons.info_outline, color: Theme.of(context).iconTheme.color,),
+                child: FaIcon(FontAwesomeIcons.infoCircle, color: Theme.of(context).iconTheme.color,),
               ),
               Expanded(
                 child: Text(
@@ -362,7 +368,7 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
             children: <Widget>[
               Padding(
                 padding: EdgeInsets.fromLTRB(10.0, 0.0, 20.0, 0.0),
-                child: Icon(Icons.help_outline, color: Theme.of(context).iconTheme.color,),
+                child: FaIcon(FontAwesomeIcons.solidQuestionCircle, color: Theme.of(context).iconTheme.color,),
               ),
               Expanded(
                 child: Text(
@@ -402,7 +408,7 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
             children: <Widget>[
               Padding(
                 padding: EdgeInsets.fromLTRB(10.0, 0.0, 20.0, 0.0),
-                child: Icon(Icons.delete, color: Theme.of(context).iconTheme.color,),
+                child: FaIcon(FontAwesomeIcons.userTimes, color: Theme.of(context).iconTheme.color,),
               ),
               Expanded(
                 child: Text(
@@ -442,7 +448,7 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
             children: <Widget>[
               Padding(
                 padding: EdgeInsets.fromLTRB(10.0, 0.0, 20.0, 0.0),
-                child: Icon(Icons.exit_to_app, color: Theme.of(context).iconTheme.color,),
+                child: FaIcon(FontAwesomeIcons.signOutAlt, color: Theme.of(context).iconTheme.color,),
               ),
               Expanded(
                 child: Text(

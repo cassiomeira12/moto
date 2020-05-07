@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 
 const brightness = Brightness.dark;
 
-const primaryColor = const Color(0xFF00796B);
-const primaryColorDark = const Color(0xFF004D40);
-const accentColor = const Color(0xFFFCA639);
+const primaryColor = Color(0xFF00796B);
+const primaryColorLight = Color(0xFF4FAA84);
+const primaryColorDark = Color(0xFF004D40);
+const accentColor = Color(0xFFFCA639);
 
-const backgroundColor = const Color(0xFFF5F5F5);
+const backgroundColor = Color(0xFFF5F5F5);
 const errorColor = Colors.redAccent;
 
 ThemeData darkTheme() {
@@ -20,8 +21,8 @@ ThemeData darkTheme() {
         color: Colors.white,
       ),
       body1: TextStyle(
-          fontSize: 20,
-          color: Colors.white,
+        fontSize: 20,
+        color: Colors.white,
       ),
       body2: TextStyle(
         fontSize: 18,
@@ -39,6 +40,16 @@ ThemeData darkTheme() {
       display2: TextStyle(
         fontSize: 12,
         color: Colors.white,
+      ),
+      display3: TextStyle(
+        fontSize: 14,
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
+      ),
+      display4: TextStyle(
+        fontSize: 14,
+        color: Colors.white,
+        fontWeight: FontWeight.normal,
       ),
     ),
     // tabBarTheme:
@@ -61,16 +72,18 @@ ThemeData darkTheme() {
     // dialogTheme:
     // floatingActionButtonTheme:
     iconTheme: IconThemeData(
-        color: Colors.white70,
+      color: Colors.white70,
     ),
     // inputDecorationTheme:
     // pageTransitionsTheme:
     // primaryIconTheme:
     // primaryTextTheme:
     // sliderTheme:
+    cardColor: Colors.white70,
     hintColor: Colors.white30,
     errorColor: errorColor,
     primaryColor: primaryColor,
+    primaryColorLight: primaryColorLight,
     primaryColorDark: primaryColorDark,
     accentColor: accentColor,
     // fontFamily: 'Montserrat',

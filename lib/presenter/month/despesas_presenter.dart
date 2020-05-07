@@ -5,7 +5,7 @@ class DespesasPresenter implements DespesasContractPresenter {
   final DespesasContractView _view;
   DespesasPresenter(this._view);
 
-  DespesasContractService service = FirebaseDespesasService();
+  DespesasContractService service = FirebaseDespesasService("despesas");
 
   @override
   Future<dynamic> create(dynamic item) async {

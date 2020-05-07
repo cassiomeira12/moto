@@ -13,7 +13,7 @@ class FirebaseCreateAccountService extends CreateAccountContractService {
   Future<BaseUser> createAccount(BaseUser user) async {
     return FirebaseAuth.instance.createUserWithEmailAndPassword(email: user.email, password: user.password).then((AuthResult authResult) async {
       user.emailVerified = authResult.user.isEmailVerified;
-      Crud<BaseUser> crud = FirebaseUserService();
+      Crud<BaseUser> crud = FirebaseUserService("users");
       BaseUser result = await crud.create(user);
       if (result == null) {
         presenter.onFailure(ERROR_CRIAR_USUARIO);
