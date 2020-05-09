@@ -1,5 +1,7 @@
 import 'package:moto/contract/month/month_contract.dart';
+import 'package:moto/model/base_model.dart';
 import 'package:moto/model/fuel.dart';
+import 'package:moto/model/gasto.dart';
 import 'package:moto/model/month.dart';
 import 'package:moto/services/firebase/firebase_month_service.dart';
 
@@ -72,6 +74,11 @@ class MouthPresenter implements MonthContractPresenter {
   @override
   Future<List> listDespesas(Month month) async {
     return await service.listDespesas(month);
+  }
+
+  @override
+  Future<dynamic> deleteDespesa(Month month, BaseModel gasto) async {
+    return await service.deleteDespesa(month, gasto);
   }
 
 }

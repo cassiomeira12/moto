@@ -3,13 +3,13 @@ import 'package:moto/view/widgets/background_card.dart';
 import 'package:moto/view/widgets/shape_round.dart';
 import 'package:flutter/material.dart';
 
-class GastoPage extends StatefulWidget {
+class VeiculoPage extends StatefulWidget {
 
   @override
-  State<StatefulWidget> createState() => _GastoPageState();
+  State<StatefulWidget> createState() => _VeiculoPageState();
 }
 
-class _GastoPageState extends State<GastoPage> {
+class _VeiculoPageState extends State<VeiculoPage> {
   final _formKey = new GlobalKey<FormState>();
 
   @override

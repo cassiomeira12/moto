@@ -91,7 +91,7 @@ class FirebaseMonthService implements MonthContractService {
   @override
   Future<List> listDespesas(Month month) async {
     String uId = month.id;
-    return await _collection.document(uId).collection("despesas").getDocuments().then((value) {
+    return await _collection.document(uId).collection("despesas").orderBy("data", descending: true) .getDocuments().then((value) {
       return value.documents.map<dynamic>((item) {
         if (item.data["type"] == GastoType.MANUTENCAO.toString()) {
           return Maintenance.fromMap(item.data);
@@ -104,6 +104,16 @@ class FirebaseMonthService implements MonthContractService {
         }
         return null;
       }).toList();
+    }).catchError((error) {
+      Log.e(error);
+      return null;
+    });
+  }
+
+  @override
+  Future<dynamic> deleteDespesa(Month month, BaseModel gasto) async {
+    return await _collection.document(month.id).collection("despesas").document(gasto.id).delete().then((result) {
+      return gasto;
     }).catchError((error) {
       Log.e(error);
       return null;

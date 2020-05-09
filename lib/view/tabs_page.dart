@@ -9,7 +9,7 @@ import 'package:moto/view/notifications/notifications_page.dart';
 import 'package:moto/view/settings/settings_page.dart';
 import 'package:flutter/material.dart';
 
-import 'home/gasto_page.dart';
+import 'home/novo_gasto_page.dart';
 import 'page_router.dart';
 
 class TabsPage extends StatefulWidget {
@@ -56,7 +56,7 @@ class _TabsPageState extends State<TabsPage> {
           final result = await Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) {
-                return GastoPage(month: SingletonMonth.instance);
+                return NovoGastoPage(month: SingletonMonth.instance);
               }
             ),
           );

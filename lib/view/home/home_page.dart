@@ -1,8 +1,7 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_masked_text/flutter_masked_text.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:moto/contract/month/month_contract.dart';
-import 'package:moto/main.dart';
+import 'package:moto/model/base_model.dart';
 import 'package:moto/model/fuel.dart';
 import 'package:moto/model/gasto.dart';
 import 'package:moto/model/item.dart';
@@ -14,11 +13,13 @@ import 'package:moto/presenter/month/month_presenter.dart';
 import 'package:moto/strings.dart';
 import 'package:moto/utils/date_util.dart';
 import 'package:moto/view/home/gasto_page.dart';
+import 'package:moto/view/home/novo_gasto_page.dart';
 import 'package:moto/view/widgets/scaffold_snackbar.dart';
 import 'package:moto/view/widgets/secondary_button.dart';
 import 'package:flutter/material.dart';
 
 import '../page_router.dart';
+import 'veiculo_page.dart';
 
 class HomePage extends StatefulWidget {
   _HomePageState page;
@@ -34,6 +35,9 @@ class HomePage extends StatefulWidget {
     page.setState(() {
       page.totalMes += (despesa as Gasto).total;
       listDespesas.add(despesa);
+      listDespesas.sort((a, b) {
+        return b.data.compareTo(a.data);
+      });
     });
   }
 }
@@ -59,6 +63,7 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
     month = "Mês de ${DateUtil.getMonth(DateTime.now())}";
     if (SingletonMonth.instance.id == null) {
       SingletonMonth.instance.id = DateUtil.getNumberMonth(DateTime.now()) + DateUtil.getNumberYear(DateTime.now());
+      //SingletonMonth.instance.id = "042020";
     }
     currentMonth = SingletonMonth.instance;
     presenter.read(currentMonth);
@@ -114,11 +119,16 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
         body: (widget.listDespesas == null || widget.listDespesas.isEmpty) ?
         semDespesas()
           :
-        ListView.builder(
-          itemCount: widget.listDespesas == null ? 0 : widget.listDespesas.length,
-          itemBuilder: (context, index) {
-            return gastoWidget(index);
-          },
+        CustomScrollView(
+          slivers: <Widget>[
+            SliverList(
+              delegate: SliverChildListDelegate(
+                  widget.listDespesas.map<Widget>((item) {
+                    return listItem(item);
+                  }).toList()
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -192,7 +202,7 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
                             ],
                           ),
                           onPressed: () {
-                            showDialogLogOut();
+                            showDialogUpdateKM();
                           },
                         ),
                       ),
@@ -225,7 +235,9 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
                               ),
                             ],
                           ),
-                          onPressed: () { },
+                          onPressed: () {
+                            PageRouter.push(context, VeiculoPage());
+                          },
                         ),
                       ),
                     ),
@@ -311,7 +323,7 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
           final result = await Navigator.of(context).push(
             CupertinoPageRoute(
               builder: (context) {
-                return GastoPage(month: currentMonth);
+                return NovoGastoPage(month: currentMonth);
               }
             ),
           );
@@ -324,35 +336,59 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
     );
   }
 
-  Widget gastoWidget(int index) {
-    String tipo, preco, data;
-    preco = (widget.listDespesas[index] as Gasto).total.toString();
+  Widget listItem(dynamic item) {
+    return Slidable(
+      actionPane: SlidableDrawerActionPane(),
+      actionExtentRatio: 0.25,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(8, 8, 8, 0),
+        child: gastoWidget(item as Gasto),
+      ),
+      secondaryActions: <Widget>[
+        Padding(
+          padding: EdgeInsets.fromLTRB(0, 8, 8, 0),
+          child: IconSlideAction(
+            caption: DELETAR,
+            color: Colors.red,
+            icon: Icons.delete,
+            onTap: () {
+              showDialogDeleteGasto(item as BaseModel);
+            },
+          ),
+        ),
+      ],
+    );
+  }
 
-    switch((widget.listDespesas[index] as Gasto).type) {
+  Widget gastoWidget(Gasto gasto) {
+    String tipo, preco, data;
+    preco = gasto.total.toString();
+
+    switch(gasto.type) {
       case GastoType.COMBUSTIVEL:
-        Fuel fuel = widget.listDespesas[index] as Fuel;
-        //data = "Dia ${fuel.data.day} às ${fuel.data.hour}:${fuel.data.minute}";
-        tipo = "Combustível";
+        Fuel fuel = gasto as Fuel;
+        data = DateUtil.formatDateMouthHour(fuel.data);
+        tipo = "${fuel.combustivel} - ${fuel.litros} litros";
         break;
       case GastoType.MANUTENCAO:
-        Maintenance maintenance = widget.listDespesas[index] as Maintenance;
-        //data = "Dia ${maintenance.data.day} às ${maintenance.data.hour}:${maintenance.data.minute}";
+        Maintenance maintenance = gasto as Maintenance;
+        data = DateUtil.formatDateMouthHour(maintenance.data);
         tipo = "Manutenção";
         break;
       case GastoType.PRODUTO:
-        Item item = widget.listDespesas[index] as Item;
-        //data = "Dia ${item.data.day} às ${item.data.hour}:${item.data.minute}";
-        tipo = "Produto";
+        Item item = gasto as Item;
+        data = DateUtil.formatDateMouthHour(item.data);
+        tipo = item.produto;
         break;
       case GastoType.REVISAO:
-        Review review = widget.listDespesas[index] as Review;
-        //data = "Dia ${review.data.day} às ${review.data.hour}:${review.data.minute}";
+        Review review = gasto as Review;
+        data = DateUtil.formatDateMouthHour(review.data);
         tipo = "Revisão";
         break;
     }
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(8, 8, 8, 0),
+      padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
       child: SecondaryButton(
         child: Container(
           child: Row(
@@ -362,7 +398,7 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Image.asset(
-                    (widget.listDespesas[index] as Gasto).imagem,
+                    gasto.imagem,
                     width: 40,
                   ),
                 ),
@@ -382,7 +418,7 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
                         textAlign: TextAlign.left,
                       ),
                       Text(
-                        "Data",
+                        data,
                         maxLines: 1,
                         style: Theme.of(context).textTheme.display2,
                         textAlign: TextAlign.left,
@@ -396,7 +432,7 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
                 child: Align(
                   alignment: Alignment.centerRight,
                   child: Text(
-                    "R\$: $preco",
+                    "R\$ $preco",
                     maxLines: 1,
                     style: TextStyle(
                       fontSize: 18,
@@ -410,13 +446,13 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
           ),
         ),
         onPressed: () {
-
+          PageRouter.push(context, GastoPage());
         },
       ),
     );
   }
 
-  void showDialogLogOut() {
+  void showDialogUpdateKM() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -539,6 +575,36 @@ class _HomePageState extends State<HomePage> implements MonthContractView {
       Navigator.of(context).pop();
       ScaffoldSnackBar.success(context, _scaffoldKey, "Kilometragem atualizada");
     }
+  }
+
+  void showDialogDeleteGasto(BaseModel gasto) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(DELETAR),
+          content: Text("Deseja remover o gasto ?"),
+          actions: <Widget>[
+            FlatButton(
+              child: Text(CANCELAR),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            FlatButton(
+              child: Text(DELETAR),
+              onPressed: () {
+                PageRouter.pop(context);
+                presenter.deleteDespesa(currentMonth, gasto);
+                setState(() {
+                  widget.listDespesas.remove(gasto);
+                });
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
 }
